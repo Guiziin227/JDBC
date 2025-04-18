@@ -1,27 +1,47 @@
 package db;
 
+
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Properties;
 
 public class DB {
-    public static void main(String[] args) {
-        Properties props = new Properties();
-        try {
-            props.load(new FileInputStream("config.properties"));
 
-            String url = props.getProperty("db.url");
-            String user = props.getProperty("db.user");
-            String password = props.getProperty("db.password");
+    private static Connection conn = null;
 
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection conn = DriverManager.getConnection(url, user, password);
-            System.out.println("✅ Conectado com sucesso!");
+    public static Connection getConnection() {
+        if (conn == null) {
+            try {
+                Properties props = loadProperties();
+                String url = props.getProperty("dburl");
+                conn = DriverManager.getConnection(url, props);
+            } catch (SQLException e) {
+                throw new DbException("Error connecting to database", e);
+            }
+        }
+        return conn;
+    }
 
-        } catch (Exception e) {
-            System.out.println("❌ Erro ao conectar:");
-            e.printStackTrace();
+    public static void closeConnection() {
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                throw new DbException("Error closing connection", e);
+            }
+        }
+    }
+
+    private static Properties loadProperties() {
+        try (FileInputStream fs = new FileInputStream("config.properties")) {
+            Properties props = new Properties();
+            props.load(fs);
+            return props;
+        } catch (IOException e) {
+            throw new DbException("Error loading properties file", e);
         }
     }
 }
