@@ -11,7 +11,6 @@ public class Main {
     public static void main(String[] args) {
 
         Connection conn = null;
-
         Statement st = null;
         ResultSet rs = null;
 
@@ -28,6 +27,11 @@ public class Main {
 
         } catch (SQLException e) {
             e.getStackTrace();
+        } finally {
+            DB.closeResultSet(rs);
+            DB.closeStatement(st);
+            DB.closeConnection();
         }
+
     }
 }
