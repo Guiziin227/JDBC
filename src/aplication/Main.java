@@ -95,6 +95,7 @@ public class Main {
                 System.out.println("Transaction rolled back! " + e.getMessage());
            }
 
+            System.out.println("Transaction completed!");
         } catch (SQLException e) {
             e.getStackTrace();
         } finally {
