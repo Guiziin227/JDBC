@@ -1,6 +1,7 @@
 package aplication;
 
 import db.DB;
+import db.DbIntegrityException;
 
 import java.sql.*;
 import java.text.ParseException;
@@ -17,7 +18,6 @@ public class Main {
         ResultSet rs = null;
 
         PreparedStatement pst = null;
-        PreparedStatement pst1 = null;
 
         try {
             conn = DB.getConnection();
@@ -61,7 +61,17 @@ public class Main {
             System.out.println("Update completed! Rows affected: " + rowsAffected);
             System.out.println("Done!");
 
-
+//Deletar dados
+            try {
+                pst = conn.prepareStatement("DELETE FROM department WHERE Id = ?");//prepara a query
+                pst.setInt(1, 4);
+                rowsAffected = pst.executeUpdate();
+                System.out.println("Delete completed! Rows affected: " + rowsAffected);
+            } catch (SQLException e) {
+                throw new DbIntegrityException("Integrity violation: " + e.getMessage());
+            } finally {
+                DB.closeStatement(pst);
+            }
         } catch (SQLException | ParseException e) {
             e.getStackTrace();
         } finally {
