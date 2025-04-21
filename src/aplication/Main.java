@@ -17,21 +17,21 @@ public class Main {
         ResultSet rs = null;
 
         PreparedStatement pst = null;
+        PreparedStatement pst1 = null;
 
         try {
             conn = DB.getConnection();
-
             st = conn.createStatement();//instancia o objeto st
 
-
+//Inserção de dados
             pst = conn.prepareStatement("INSERT INTO seller (Name, Email, BirthDate, BaseSalary, DepartmentID) "
                     + " VALUES (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);//prepara a query
 
             pst.setString(1, "Guilherme");//seta o primeiro parametro
-            pst.setString(2, "gh630@gmail.com");//seta o segundo parametro
-            pst.setDate(3, new Date(sdf.parse("12/04/2006").getTime()));//seta o terceiro parametro
-            pst.setDouble(4, 2300);//seta o quarto parametro
-            pst.setInt(5, 4);//seta o quinto parametro
+            pst.setString(2, "gh630@gmail.com");
+            pst.setDate(3, new Date(sdf.parse("12/04/2006").getTime()));
+            pst.setDouble(4, 2300);
+            pst.setInt(5, 4);
 
             int rowsAffected = pst.executeUpdate();
             if (rowsAffected > 0) {
@@ -43,11 +43,24 @@ public class Main {
             } else {
                 System.out.println("No rows affected!");
             }
-
+//Busca de todos os dados
             rs = st.executeQuery("SELECT * FROM department");//executa a query (comando sql)
             while (rs.next()) {//enquanto houver um proximo resultado
                 System.out.println(rs.getInt("Id") + ", " + rs.getString("Name"));//get e o nome da coluna
             }
+
+
+//Atualização de dados
+            System.out.println("Checking for update...");
+            pst = conn.prepareStatement("UPDATE seller " + "SET BaseSalary = BaseSalary + ? " +
+                    "WHERE (DepartmentID = ?)");
+            pst.setDouble(1, 200.0);
+            pst.setInt(2, 2);
+
+            rowsAffected = pst.executeUpdate();
+            System.out.println("Update completed! Rows affected: " + rowsAffected);
+            System.out.println("Done!");
+
 
         } catch (SQLException | ParseException e) {
             e.getStackTrace();
