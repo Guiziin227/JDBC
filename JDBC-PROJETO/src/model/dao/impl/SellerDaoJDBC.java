@@ -83,7 +83,7 @@ public class SellerDaoJDBC implements SellerDao {
 
     @Override
     public void deleteById(Integer id) {
-        // Implementation for deleting a seller by ID from the database
+        s
     }
 
     @Override
