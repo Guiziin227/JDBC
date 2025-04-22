@@ -25,12 +25,60 @@ public class SellerDaoJDBC implements SellerDao {
 
     @Override
     public void insert(Seller obj) {
-        // Implementation for inserting a seller into the database
+        PreparedStatement stmt = null; //preparando a consulta
+        try {
+            stmt = conn.prepareStatement("INSERT INTO seller " +
+                    "(Name, Email, BirthDate, BaseSalary, DepartmentId) " +
+                    "VALUES (?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+
+            stmt.setString(1, obj.getName());
+            stmt.setString(2, obj.getEmail());
+            stmt.setDate(3, new java.sql.Date(obj.getBirthDate().getTime()));
+            stmt.setDouble(4, obj.getBaseSalary());
+            stmt.setInt(5, obj.getDepartmentId().getId());
+
+            int rowsAffected = stmt.executeUpdate(); // executando a consulta
+
+            if (rowsAffected > 0) {
+                ResultSet rs = stmt.getGeneratedKeys(); // pegando o id do vendedor
+                if (rs.next()) {
+                    int id = rs.getInt(1);
+                    obj.setId(id); // setando o id do vendedor
+                }
+                DB.closeResultSet(rs); // fechando o result set
+            } else {
+                throw new DbException("Unexpected error! No rows affected.");
+            }
+
+        } catch (SQLException e) {
+            throw new DbException("Error inserting seller", e);
+        } finally {
+            DB.closeStatement(stmt); // fechando a conexão
+        }
     }
 
     @Override
     public void update(Seller obj) {
-        // Implementation for updating a seller in the database
+        PreparedStatement stmt = null; //preparando a consulta
+        try {
+            stmt = conn.prepareStatement("UPDATE seller " +
+                    "SET Name = ?, Email = ?, BirthDate = ?, BaseSalary = ?, DepartmentId = ? " +
+                    "WHERE Id = ?");
+
+            stmt.setString(1, obj.getName());
+            stmt.setString(2, obj.getEmail());
+            stmt.setDate(3, new java.sql.Date(obj.getBirthDate().getTime()));
+            stmt.setDouble(4, obj.getBaseSalary());
+            stmt.setInt(5, obj.getDepartmentId().getId());
+            stmt.setInt(6, obj.getId());
+
+            stmt.executeUpdate(); // executando a consulta
+
+        } catch (SQLException e) {
+            throw new DbException("Error updating seller", e);
+        } finally {
+            DB.closeStatement(stmt); // fechando a conexão
+        }
     }
 
     @Override
@@ -127,8 +175,36 @@ public class SellerDaoJDBC implements SellerDao {
 
     @Override
     public List<Seller> findAll() {
-        // Implementation for finding all sellers in the database
-        return null;
+        PreparedStatement stmt = null; //preparando a consulta
+        ResultSet rs = null;
+
+        try{
+            stmt = conn.prepareStatement("SELECT seller.*,department.Name as DepName\n" +
+                    "FROM seller INNER JOIN department\n" +
+                    "ON seller.DepartmentId = department.Id\n" +
+                    "ORDER BY Name");
+
+            rs = stmt.executeQuery(); // executando a consulta
+
+            List<Seller> sellers = new ArrayList<>();
+            Map<Integer, Department> map = new HashMap<>();
+
+            while (rs.next()) {
+                Department dep = map.get(rs.getInt("DepartmentId"));
+                // instanciando o departamento e evitando a repetição de departamento
+
+                if (dep == null) {
+                    dep = new Department();
+                    map.put(rs.getInt("DepartmentId"), dep);
+                }
+
+                Seller seller = instantiateSeller(rs, dep); // instanciando o vendedor
+                sellers.add(seller); // adicionando o vendedor a lista
+            }
+            return sellers;
+        } catch (SQLException e){
+            throw new DbException("Error preparing statement", e);
+        }
     }
 
 
