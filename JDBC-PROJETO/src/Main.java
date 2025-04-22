@@ -69,9 +69,5 @@ public class Main {
 
         System.out.println("\n=== TESTE 11: department delete ===");
         departmentDao.deleteById(6);
-
-
-
-
     }
 }
